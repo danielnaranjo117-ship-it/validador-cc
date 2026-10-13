@@ -55,8 +55,8 @@ android {
         applicationId = "com.venice.ccchecker"
         minSdk = 24
         targetSdk = 34
-        versionCode = 10
-        versionName = "4.1"
+        versionCode = 11
+        versionName = "5.0"
     }
 
     buildFeatures { compose = true }
@@ -151,7 +151,8 @@ EOF
 cat > app/src/main/res/mipmap/ic_launcher.xml <<'EOF'
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp"
-    android:viewportWidth="108" android:viewportHeight="108">
+    android:viewportWidth="108"
+    android:viewportHeight="108">
     <path android:fillColor="#0B0B0B" android:pathData="M0,0h108v108h-108z"/>
     <path android:fillColor="#D4AF37" android:pathData="M54,24 A30,30 0 1,1 53.9,24 Z"/>
     <path android:fillColor="#0B0B0B" android:pathData="M54,32 A22,22 0 1,1 53.9,32 Z"/>
@@ -592,6 +593,7 @@ EOF
 cat > app/src/main/java/com/venice/ccchecker/MainActivity.kt <<'EOF'
 package com.venice.ccchecker
 
+import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
@@ -646,6 +648,7 @@ import java.util.Locale
 
 val NEGRO = Color(0xFF0B0B0B)
 val FONDO = Color(0xFF1A1A1A)
+val BARRA = Color(0xFF141414)
 val CARBON = Color(0xFF262626)
 val CARBON2 = Color(0xFF333333)
 val DORADO = Color(0xFFD4AF37)
@@ -657,7 +660,6 @@ val ROJO = Color(0xFFEF4444)
 val AMBAR = Color(0xFFFBBF24)
 val NARANJA = Color(0xFFFB923C)
 val BORDE = Color(0xFF444444)
-val ROJIZO = Color(0xFFFF2A2A)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -748,6 +750,28 @@ fun Marca(grande: Boolean = false) {
                 fontSize = if (grande) 24.sp else 14.sp, letterSpacing = 4.sp
             )
         }
+    }
+}
+
+@Composable
+fun BarraSuperior() {
+    Column(Modifier.fillMaxWidth()) {
+        Row(
+            Modifier.fillMaxWidth().background(BARRA).padding(horizontal = 16.dp, vertical = 9.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Rayo(13.dp)
+                Spacer(Modifier.width(7.dp))
+                Text(
+                    "SPEED CC", color = DORADO, fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold, letterSpacing = 2.sp
+                )
+            }
+            Text("v5.0", color = GRIS2, fontSize = 10.sp)
+        }
+        Box(Modifier.fillMaxWidth().height(1.dp).background(DORADO.copy(alpha = 0.35f)))
     }
 }
 
@@ -915,7 +939,7 @@ fun App() {
     var job by remember { mutableStateOf<Job?>(null) }
 
     LaunchedEffect(Unit) {
-        Toast.makeText(ctx, "Speed CC 4.1 cargada", Toast.LENGTH_SHORT).show()
+        Toast.makeText(ctx, "Speed CC 5.0 cargada", Toast.LENGTH_SHORT).show()
     }
 
     fun lanzar(cards: List<Card>, reemplazar: Boolean) {
@@ -958,7 +982,7 @@ fun App() {
 
     Box(Modifier.fillMaxSize().background(FONDO)) {
 
-        Box(Modifier.fillMaxSize()) {
+        Box(Modifier.fillMaxSize().padding(top = 32.dp)) {
             when {
                 tab == 0 && revisando -> PantallaRevisar(
                     texto = texto,
@@ -990,17 +1014,11 @@ fun App() {
             }
         }
 
-        Box(Modifier.align(Alignment.TopCenter).fillMaxWidth().background(ROJIZO)) {
-            Text(
-                "SI VES ESTA FRANJA ROJA, EL PINTADO FUNCIONA - v4.1",
-                color = BLANCO, fontSize = 11.sp, fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-            )
-        }
+        Box(Modifier.align(Alignment.TopCenter).fillMaxWidth()) { BarraSuperior() }
 
         NavigationBar(
             modifier = Modifier.align(Alignment.BottomCenter),
-            containerColor = Color(0xFF151515)
+            containerColor = BARRA
         ) {
             NavigationBarItem(
                 selected = tab == 0 && !revisando,
@@ -1031,10 +1049,8 @@ fun App() {
 fun PantallaInicio(onRevisar: () -> Unit, onHistorial: () -> Unit, onAjustes: () -> Unit) {
     Column(
         Modifier.fillMaxSize()
-            .padding(start = 16.dp, end = 16.dp, top = 44.dp, bottom = 112.dp)
+            .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 112.dp)
     ) {
-        Text("INICIO - v4.1", color = VERDE, fontSize = 11.sp, letterSpacing = 2.sp)
-        Spacer(Modifier.height(12.dp))
         Row(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -1130,7 +1146,7 @@ fun PantallaRevisar(
 
     Column(
         Modifier.fillMaxSize()
-            .padding(start = 16.dp, end = 16.dp, top = 44.dp, bottom = 112.dp)
+            .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 112.dp)
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onAtras) { Icon(Icons.Filled.ArrowBack, null, tint = BLANCO) }
@@ -1194,10 +1210,14 @@ fun PantallaRevisar(
         Spacer(Modifier.height(8.dp))
         Text(estadoTxt, color = GRIS, fontSize = 12.sp)
         if (resultados.isNotEmpty()) {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(10.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                BotonSuave("Copiar vivas", Icons.Filled.Check) { copiarVivas(ctx, resultados.toList()) }
                 BotonSuave("CSV", Icons.Filled.Share) { compartirCsv(ctx, "vivas.csv", resultados.toList()) }
                 BotonSuave("PDF", Icons.Filled.DateRange) { imprimirPdf(ctx, "Speed CC", resultados.toList()) }
+            }
+            Spacer(Modifier.height(6.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 BotonSuave("Reintentar", Icons.Filled.Refresh) { onReintentar() }
             }
         }
@@ -1257,7 +1277,7 @@ fun PantallaHistorial() {
 
     Column(
         Modifier.fillMaxSize()
-            .padding(start = 16.dp, end = 16.dp, top = 44.dp, bottom = 112.dp)
+            .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 112.dp)
     ) {
         Text("Historial", color = BLANCO, fontSize = 20.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(12.dp))
@@ -1336,7 +1356,7 @@ fun DetalleRun(run: Run, onBack: () -> Unit) {
     val orden = run.results.sortedWith(Orden.comparador)
     Column(
         Modifier.fillMaxSize()
-            .padding(start = 16.dp, end = 16.dp, top = 44.dp, bottom = 112.dp)
+            .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 112.dp)
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, null, tint = BLANCO) }
@@ -1353,8 +1373,9 @@ fun DetalleRun(run: Run, onBack: () -> Unit) {
             Text("${run.total} revisadas  -  ${run.vivas} validas", color = BLANCO, fontSize = 14.sp)
             Spacer(Modifier.height(10.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                BotonSuave("Compartir CSV", Icons.Filled.Share) { compartirCsv(ctx, "vivas.csv", orden) }
-                BotonSuave("Guardar PDF", Icons.Filled.DateRange) { imprimirPdf(ctx, "Speed CC", orden) }
+                BotonSuave("Copiar vivas", Icons.Filled.Check) { copiarVivas(ctx, orden) }
+                BotonSuave("CSV", Icons.Filled.Share) { compartirCsv(ctx, "vivas.csv", orden) }
+                BotonSuave("PDF", Icons.Filled.DateRange) { imprimirPdf(ctx, "Speed CC", orden) }
             }
         }
         Spacer(Modifier.height(12.dp))
@@ -1392,7 +1413,7 @@ fun PantallaAjustes(onLimpiar: () -> Unit) {
 
     Column(
         Modifier.fillMaxSize()
-            .padding(start = 16.dp, end = 16.dp, top = 44.dp, bottom = 112.dp)
+            .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 112.dp)
     ) {
         Text("Ajustes", color = BLANCO, fontSize = 20.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(14.dp))
@@ -1400,7 +1421,7 @@ fun PantallaAjustes(onLimpiar: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Marca(false)
                 Spacer(Modifier.width(12.dp))
-                Text("v4.1", color = GRIS2, fontSize = 12.sp)
+                Text("v5.0", color = GRIS2, fontSize = 12.sp)
             }
             Spacer(Modifier.height(8.dp))
             Text("Configura la velocidad y los datos de apoyo.", color = GRIS, fontSize = 12.sp)
@@ -1464,6 +1485,18 @@ fun PantallaAjustes(onLimpiar: () -> Unit) {
         Text("Cerrar sesion limpia la lista pegada y los resultados en pantalla.",
             color = GRIS2, fontSize = 11.sp)
     }
+}
+
+fun copiarVivas(ctx: Context, rows: List<Result>) {
+    val vivas = rows.filter { it.isLive }
+    if (vivas.isEmpty()) {
+        Toast.makeText(ctx, "No hay validas que copiar", Toast.LENGTH_SHORT).show()
+        return
+    }
+    val txt = vivas.joinToString("\n") { "${it.num}|${it.mm}|${it.yy}|${it.cvc}" }
+    val cm = ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    cm.setPrimaryClip(ClipData.newPlainText("vivas", txt))
+    Toast.makeText(ctx, "${vivas.size} validas copiadas al portapapeles", Toast.LENGTH_SHORT).show()
 }
 
 fun compartirCsv(ctx: Context, nombre: String, rows: List<Result>) {
