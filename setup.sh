@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -e
-echo "== Creando proyecto Validador CC =="
+echo "== Speed CC - construyendo =="
 
 mkdir -p app/src/main/java/com/venice/ccchecker
 mkdir -p app/src/main/res/values
@@ -15,7 +15,7 @@ pluginManagement {
 dependencyResolutionManagement {
     repositories { google(); mavenCentral() }
 }
-rootProject.name = "ValidadorCC"
+rootProject.name = "SpeedCC"
 include(":app")
 EOF
 
@@ -48,8 +48,8 @@ android {
         applicationId = "com.venice.ccchecker"
         minSdk = 24
         targetSdk = 34
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 3
+        versionName = "2.0"
     }
     buildFeatures { compose = true }
     compileOptions {
@@ -69,6 +69,7 @@ dependencies {
     implementation(platform("androidx.compose:compose-bom:2024.10.01"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-core")
     implementation("androidx.activity:activity-compose:1.9.3")
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
@@ -84,7 +85,7 @@ cat > app/src/main/AndroidManifest.xml <<'EOF'
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher"
-        android:label="Validador CC"
+        android:label="Speed CC"
         android:supportsRtl="true"
         android:theme="@style/Theme.CCChecker">
         <activity
@@ -103,16 +104,16 @@ EOF
 
 cat > app/src/main/res/values/colors.xml <<'EOF'
 <resources>
-    <color name="ic_launcher_background">#0F172A</color>
+    <color name="ic_launcher_background">#0B0B0B</color>
 </resources>
 EOF
 
 cat > app/src/main/res/values/themes.xml <<'EOF'
 <resources>
     <style name="Theme.CCChecker" parent="@android:style/Theme.Material.NoActionBar">
-        <item name="android:statusBarColor">#0F172A</item>
-        <item name="android:navigationBarColor">#0F172A</item>
-        <item name="android:windowBackground">#0F172A</item>
+        <item name="android:statusBarColor">#0B0B0B</item>
+        <item name="android:navigationBarColor">#0B0B0B</item>
+        <item name="android:windowBackground">#0B0B0B</item>
     </style>
 </resources>
 EOF
@@ -121,11 +122,9 @@ cat > app/src/main/res/drawable/ic_launcher_foreground.xml <<'EOF'
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp"
     android:viewportWidth="108" android:viewportHeight="108">
-    <path android:fillColor="#2563EB"
-        android:pathData="M30,36h48a5,5 0 0 1 5,5v26a5,5 0 0 1 -5,5h-48a5,5 0 0 1 -5,-5v-26a5,5 0 0 1 5,-5z"/>
-    <path android:fillColor="#1E3A8A" android:pathData="M25,46h58v7h-58z"/>
-    <path android:fillColor="#FBBF24" android:pathData="M30,58h14v7h-14z"/>
-    <path android:fillColor="#22C55E" android:pathData="M58,64 l5,5 l11,-13 l4,4 l-15,17 l-9,-9 z"/>
+    <path android:fillColor="#D4AF37" android:pathData="M54,26 A28,28 0 1,1 53.9,26 Z"/>
+    <path android:fillColor="#0B0B0B" android:pathData="M54,33 A21,21 0 1,1 53.9,33 Z"/>
+    <path android:fillColor="#D4AF37" android:pathData="M63,38 L43,58 L54,58 L47,72 L68,50 L56,50 Z"/>
 </vector>
 EOF
 
@@ -141,12 +140,10 @@ cat > app/src/main/res/mipmap/ic_launcher.xml <<'EOF'
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp"
     android:viewportWidth="108" android:viewportHeight="108">
-    <path android:fillColor="#0F172A" android:pathData="M0,0h108v108h-108z"/>
-    <path android:fillColor="#2563EB"
-        android:pathData="M30,36h48a5,5 0 0 1 5,5v26a5,5 0 0 1 -5,5h-48a5,5 0 0 1 -5,-5v-26a5,5 0 0 1 5,-5z"/>
-    <path android:fillColor="#1E3A8A" android:pathData="M25,46h58v7h-58z"/>
-    <path android:fillColor="#FBBF24" android:pathData="M30,58h14v7h-14z"/>
-    <path android:fillColor="#22C55E" android:pathData="M58,64 l5,5 l11,-13 l4,4 l-15,17 l-9,-9 z"/>
+    <path android:fillColor="#0B0B0B" android:pathData="M0,0h108v108h-108z"/>
+    <path android:fillColor="#D4AF37" android:pathData="M54,24 A30,30 0 1,1 53.9,24 Z"/>
+    <path android:fillColor="#0B0B0B" android:pathData="M54,32 A22,22 0 1,1 53.9,32 Z"/>
+    <path android:fillColor="#D4AF37" android:pathData="M63,37 L42,58 L54,58 L47,73 L69,50 L56,50 Z"/>
 </vector>
 EOF
 
@@ -592,16 +589,26 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -614,6 +621,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
@@ -622,17 +630,23 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+val NEGRO = Color(0xFF0B0B0B)
+val CARBON = Color(0xFF1A1A1A)
+val CARBON2 = Color(0xFF141414)
+val DORADO = Color(0xFFD4AF37)
+val BLANCO = Color(0xFFFFFFFF)
+val GRIS = Color(0xFF9CA3AF)
+val GRIS2 = Color(0xFF6B7280)
 val VERDE = Color(0xFF22C55E)
+val ROJO = Color(0xFFEF4444)
 val AMBAR = Color(0xFFFBBF24)
 val NARANJA = Color(0xFFFB923C)
-val ROJO = Color(0xFFEF4444)
-val GRIS = Color(0xFF94A3B8)
-val AZUL = Color(0xFF2563EB)
+val BORDE = Color(0xFF262626)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { TemaApp { Pantalla() } }
+        setContent { TemaApp { App() } }
     }
 }
 
@@ -640,140 +654,242 @@ class MainActivity : ComponentActivity() {
 fun TemaApp(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = darkColorScheme(
-            primary = AZUL,
-            onPrimary = Color.White,
-            background = Color(0xFF0F172A),
-            onBackground = Color(0xFFE2E8F0),
-            surface = Color(0xFF1E293B),
-            onSurface = Color(0xFFE2E8F0)
+            primary = DORADO, onPrimary = NEGRO,
+            background = NEGRO, onBackground = BLANCO,
+            surface = CARBON, onSurface = BLANCO,
+            surfaceVariant = CARBON2, onSurfaceVariant = GRIS,
+            outline = BORDE, secondary = DORADO
         )
     ) {
-        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-            content()
-        }
+        Surface(Modifier.fillMaxSize(), color = NEGRO) { content() }
     }
 }
 
 fun colorEstado(s: String): Color = when (s) {
     "LIVE", "LIVE_CVC" -> VERDE
     "LIVE_NO_FUNDS" -> AMBAR
-    "PENDING_3DS" -> NARANJA
-    "RETRY", "DECLINED", "RESTRICTED" -> ROJO
+    "PENDING_3DS" -> AMBAR
+    "RETRY" -> NARANJA
+    "DECLINED", "RESTRICTED", "EXPIRED", "DEAD" -> ROJO
     else -> GRIS
 }
 
 fun textoEstado(s: String): String = when (s) {
-    "LIVE" -> "SIRVE"
-    "LIVE_CVC" -> "SIRVE (CVC)"
-    "LIVE_NO_FUNDS" -> "SIN SALDO"
-    "PENDING_3DS" -> "PIDE 3DS"
-    "EXPIRED" -> "VENCIDA"
-    "RESTRICTED" -> "RESTRINGIDA"
-    "DECLINED" -> "RECHAZADA"
-    "RETRY" -> "REINTENTAR"
-    "DEAD" -> "MUERTA"
-    else -> "SIN CONEXION"
+    "LIVE", "LIVE_CVC" -> "Válida"
+    "LIVE_NO_FUNDS" -> "Sin saldo"
+    "PENDING_3DS" -> "Pendiente"
+    "RETRY" -> "Reintentar"
+    "DECLINED", "RESTRICTED" -> "Rechazada"
+    "EXPIRED" -> "Vencida"
+    "DEAD" -> "Muerta"
+    else -> "Sin conexión"
+}
+
+fun iconoEstado(s: String): ImageVector = when (s) {
+    "LIVE", "LIVE_CVC" -> Icons.Filled.CheckCircle
+    "LIVE_NO_FUNDS", "PENDING_3DS" -> Icons.Filled.Warning
+    "RETRY" -> Icons.Filled.Refresh
+    "DECLINED", "RESTRICTED", "EXPIRED", "DEAD" -> Icons.Filled.Close
+    else -> Icons.Filled.Warning
 }
 
 @Composable
-fun Cabecera(titulo: String, sub: String) {
-    Surface(color = AZUL, shape = MaterialTheme.shapes.medium, modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(14.dp)) {
-            Text(titulo, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            Text(sub, color = Color(0xFFDCE6F7), fontSize = 12.sp)
+fun Rayo(size: androidx.compose.ui.unit.Dp, color: Color = DORADO) {
+    Canvas(Modifier.size(size)) {
+        val p = Path().apply {
+            moveTo(this@Canvas.size.width * 0.62f, 0f)
+            lineTo(this@Canvas.size.width * 0.10f, this@Canvas.size.height * 0.60f)
+            lineTo(this@Canvas.size.width * 0.46f, this@Canvas.size.height * 0.60f)
+            lineTo(this@Canvas.size.width * 0.36f, this@Canvas.size.height)
+            lineTo(this@Canvas.size.width * 0.90f, this@Canvas.size.height * 0.38f)
+            lineTo(this@Canvas.size.width * 0.52f, this@Canvas.size.height * 0.38f)
+            close()
         }
+        drawPath(p, color)
     }
 }
 
 @Composable
-fun Pantalla() {
-    var tab by remember { mutableIntStateOf(0) }
-    var wv by remember { mutableStateOf<WebView?>(null) }
-
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        contentColor = MaterialTheme.colorScheme.onBackground,
-        bottomBar = {
-            NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
-                NavigationBarItem(selected = tab == 0, onClick = { tab = 0 },
-                    icon = { Text("1") }, label = { Text("Revisar") })
-                NavigationBarItem(selected = tab == 1, onClick = { tab = 1 },
-                    icon = { Text("2") }, label = { Text("Historial") })
-                NavigationBarItem(selected = tab == 2, onClick = { tab = 2 },
-                    icon = { Text("3") }, label = { Text("Ajustes") })
-            }
+fun Marca(grande: Boolean = false) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Surface(
+            color = CARBON2, shape = RoundedCornerShape(if (grande) 18.dp else 12.dp),
+            border = BorderStroke(1.5.dp, DORADO)
+        ) {
+            Box(
+                Modifier.size(if (grande) 66.dp else 40.dp),
+                contentAlignment = Alignment.Center
+            ) { Rayo(if (grande) 32.dp else 20.dp) }
         }
-    ) { pad ->
-        Box(Modifier.fillMaxSize().padding(pad)) {
-            when (tab) {
-                0 -> PantallaNuevo(wv)
-                1 -> PantallaHistorial(wv)
-                else -> PantallaAjustes()
-            }
-            AndroidView(
-                factory = { c -> WebView(c).also { it.settings.javaScriptEnabled = true; wv = it } },
-                modifier = Modifier.size(2.dp)
+        Spacer(Modifier.width(if (grande) 14.dp else 10.dp))
+        Column {
+            Text(
+                "SPEED", color = DORADO, fontWeight = FontWeight.Black,
+                fontSize = if (grande) 34.sp else 19.sp, letterSpacing = 2.sp
+            )
+            Text(
+                "CC", color = BLANCO, fontWeight = FontWeight.Black,
+                fontSize = if (grande) 24.sp else 14.sp, letterSpacing = 4.sp
             )
         }
     }
 }
 
 @Composable
-fun Leyenda() {
-    Column {
-        listOf(
-            VERDE to "SIRVE: aprobó, se puede usar",
-            AMBAR to "SIN SALDO: existe, sin fondos",
-            NARANJA to "PIDE 3DS: existe, confirma en el banco",
-            ROJO to "RECHAZADA: no sirve o falló la conexión"
-        ).forEach { (c, t) ->
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 1.dp)) {
-                Box(Modifier.size(9.dp).background(c, MaterialTheme.shapes.small))
-                Spacer(Modifier.width(7.dp))
-                Text(t, fontSize = 11.sp, color = GRIS)
+fun Tarjeta(
+    modifier: Modifier = Modifier,
+    borde: Color = DORADO.copy(alpha = 0.22f),
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Surface(
+        color = CARBON, shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(1.dp, borde),
+        modifier = modifier.fillMaxWidth()
+    ) { Column(Modifier.padding(16.dp), content = content) }
+}
+
+@Composable
+fun BotonDorado(
+    texto: String, icono: ImageVector? = null,
+    enabled: Boolean = true, onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick, enabled = enabled,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = DORADO, contentColor = NEGRO,
+            disabledContainerColor = DORADO.copy(alpha = 0.35f),
+            disabledContentColor = NEGRO.copy(alpha = 0.6f)
+        ),
+        shape = RoundedCornerShape(14.dp),
+        modifier = Modifier.fillMaxWidth().height(56.dp)
+    ) {
+        if (icono != null) {
+            Icon(icono, null, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(8.dp))
+        }
+        Text(texto, fontWeight = FontWeight.Bold, fontSize = 15.sp, letterSpacing = 1.sp)
+    }
+}
+
+@Composable
+fun BotonSuave(texto: String, icono: ImageVector? = null, onClick: () -> Unit) {
+    Surface(
+        color = CARBON2, shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, BORDE),
+        modifier = Modifier.clickable { onClick() }
+    ) {
+        Row(Modifier.padding(horizontal = 12.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
+            if (icono != null) {
+                Icon(icono, null, tint = DORADO, modifier = Modifier.size(15.dp))
+                Spacer(Modifier.width(6.dp))
             }
+            Text(texto, color = BLANCO, fontSize = 12.sp, fontWeight = FontWeight.Medium)
         }
     }
 }
 
 @Composable
-fun PantallaNuevo(wv: WebView?) {
+fun FilaFuncion(icono: ImageVector, titulo: String, sub: String, onClick: () -> Unit) {
+    Surface(
+        color = CARBON, shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, BORDE),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable { onClick() }
+    ) {
+        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier.size(44.dp).clip(RoundedCornerShape(12.dp))
+                    .background(DORADO.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center
+            ) { Icon(icono, null, tint = DORADO, modifier = Modifier.size(22.dp)) }
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(titulo, color = BLANCO, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+                Text(sub, color = GRIS, fontSize = 12.sp)
+            }
+            Icon(Icons.Filled.KeyboardArrowRight, null, tint = GRIS)
+        }
+    }
+}
+
+@Composable
+fun MiniBadge(icono: ImageVector, titulo: String, sub: String) {
+    Surface(color = CARBON2, shape = RoundedCornerShape(12.dp), border = BorderStroke(1.dp, BORDE)) {
+        Column(Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(icono, null, tint = VERDE, modifier = Modifier.size(13.dp))
+                Spacer(Modifier.width(4.dp))
+                Text(titulo, color = BLANCO, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+            }
+            Text(sub, color = GRIS2, fontSize = 10.sp)
+        }
+    }
+}
+
+@Composable
+fun ChipEstado(state: String) {
+    val c = colorEstado(state)
+    Surface(color = c.copy(alpha = 0.14f), shape = RoundedCornerShape(50)) {
+        Row(Modifier.padding(horizontal = 8.dp, vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(iconoEstado(state), null, tint = c, modifier = Modifier.size(12.dp))
+            Spacer(Modifier.width(4.dp))
+            Text(textoEstado(state), color = c, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+fun navColors() = NavigationBarItemDefaults.colors(
+    selectedIconColor = DORADO,
+    selectedTextColor = DORADO,
+    indicatorColor = DORADO.copy(alpha = 0.14f),
+    unselectedIconColor = GRIS2,
+    unselectedTextColor = GRIS2
+)
+
+@Composable
+fun Splash(onFin: () -> Unit) {
+    LaunchedEffect(Unit) { delay(1600); onFin() }
+    Box(
+        Modifier.fillMaxSize().background(
+            Brush.radialGradient(
+                listOf(Color(0xFF2A2109), NEGRO, NEGRO),
+                radius = 1100f
+            )
+        ),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Marca(grande = true)
+            Spacer(Modifier.height(22.dp))
+            Text("VALIDA  ·  REVISA  ·  VERIFICA", color = GRIS, fontSize = 11.sp, letterSpacing = 3.sp)
+        }
+        Column(
+            Modifier.align(Alignment.BottomCenter).padding(bottom = 64.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("La velocidad es tu ventaja", color = BLANCO, fontSize = 13.sp)
+            Spacer(Modifier.height(8.dp))
+            Box(Modifier.width(70.dp).height(2.dp).background(DORADO, RoundedCornerShape(50)))
+        }
+    }
+}
+
+@Composable
+fun App() {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
 
+    var splash by remember { mutableStateOf(true) }
+    var tab by remember { mutableIntStateOf(0) }
+    var revisando by remember { mutableStateOf(false) }
     var texto by remember { mutableStateOf(Ajustes.s(ctx, "lista", "")) }
-    var ladder by remember { mutableStateOf(Ajustes.b(ctx, "ladder", true)) }
-    var buscarBanco by remember { mutableStateOf(Ajustes.b(ctx, "banco", true)) }
+    var completo by remember { mutableStateOf(Ajustes.b(ctx, "ladder", true)) }
     var corriendo by remember { mutableStateOf(false) }
     var progreso by remember { mutableFloatStateOf(0f) }
-    var estadoTxt by remember { mutableStateOf("Pega tu lista y pulsa Revisar tarjetas.") }
+    var estadoTxt by remember { mutableStateOf("Pega tu lista y pulsa COMENZAR.") }
     val resultados = remember { mutableStateListOf<Result>() }
-    var ayuda by remember { mutableStateOf(false) }
     var job by remember { mutableStateOf<Job?>(null) }
-
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let {
-            ctx.contentResolver.openInputStream(it)?.bufferedReader()?.use { r -> texto = r.readText() }
-            estadoTxt = "Archivo cargado."
-        }
-    }
-
-    if (ayuda) AlertDialog(
-        onDismissRequest = { ayuda = false },
-        confirmButton = { TextButton(onClick = { ayuda = false }) { Text("Entendido") } },
-        title = { Text("Como se usa") },
-        text = {
-            Column {
-                Text("1. Copia tus tarjetas (una por linea: 4111111111111111|12|29|123).")
-                Spacer(Modifier.height(6.dp))
-                Text("2. Pulsa Pegar lista o Abrir archivo.")
-                Spacer(Modifier.height(6.dp))
-                Text("3. Pulsa Revisar tarjetas y espera. Al final guardas el PDF.")
-                Spacer(Modifier.height(10.dp))
-                Text("Verde = sirve. Amarillo = existe sin saldo. Naranja = pide confirmar en el banco. Rojo = no sirve.", color = GRIS)
-            }
-        }
-    )
+    var wv by remember { mutableStateOf<WebView?>(null) }
 
     fun lanzar(cards: List<Card>, reemplazar: Boolean) {
         if (cards.isEmpty() || corriendo) return
@@ -791,12 +907,12 @@ fun PantallaNuevo(wv: WebView?) {
                         async {
                             Semaphore(hilos).withPermit { }
                             val proxy = if (proxys.isEmpty()) null else Checker.prepararProxy(proxys.random())
-                            val r = Checker.check(c, ctx, ladder, buscarBanco, clave, proxy)
+                            val r = Checker.check(c, ctx, completo, completo, clave, proxy)
                             withContext(Dispatchers.Main) {
                                 resultados.removeAll { it.idx == c.idx }
                                 resultados.add(r); done++
                                 progreso = done.toFloat() / cards.size
-                                estadoTxt = "$done de ${cards.size} - sirven: ${resultados.count { it.isLive }}"
+                                estadoTxt = "$done de ${cards.size}  ·  válidas: ${resultados.count { it.isLive }}"
                             }
                         }
                     }.awaitAll()
@@ -804,240 +920,83 @@ fun PantallaNuevo(wv: WebView?) {
                 val ord = resultados.sortedWith(Orden.comparador)
                 resultados.clear(); resultados.addAll(ord)
                 Historial.add(ctx, Run(System.currentTimeMillis(), System.currentTimeMillis(), ord))
-                estadoTxt = "Listo. ${cards.size} revisadas - ${ord.count { it.isLive }} sirven."
+                estadoTxt = "Listo. ${cards.size} revisadas  ·  ${ord.count { it.isLive }} válidas."
             } catch (e: CancellationException) {
-                estadoTxt = "Detenido. ${resultados.count { it.isLive }} sirven."
+                estadoTxt = "Detenido. ${resultados.count { it.isLive }} válidas."
             } finally { corriendo = false; job = null }
         }
     }
 
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(14.dp)) {
-        item {
-            Column {
-                Cabecera("Validador de tarjetas", "Sabe cuales sirven. Sin tecnicismos.")
-                Spacer(Modifier.height(10.dp))
+    if (splash) { Splash { splash = false }; return }
 
-                OutlinedTextField(
-                    value = texto, onValueChange = { texto = it; Ajustes.put(ctx, "lista", it) },
-                    label = { Text("Tus tarjetas (una por linea)") },
-                    placeholder = { Text("4111111111111111|12|29|123") },
-                    modifier = Modifier.fillMaxWidth().height(110.dp),
-                    textStyle = LocalTextStyle.current.copy(fontFamily = FontFamily.Monospace, fontSize = 12.sp)
+    Scaffold(
+        containerColor = NEGRO,
+        contentColor = BLANCO,
+        bottomBar = {
+            NavigationBar(containerColor = Color(0xFF101010)) {
+                NavigationBarItem(
+                    selected = tab == 0 && !revisando,
+                    onClick = { tab = 0; revisando = false },
+                    icon = { Icon(Icons.Filled.Home, null) },
+                    label = { Text("Inicio", fontSize = 11.sp) },
+                    colors = navColors()
                 )
-                Spacer(Modifier.height(6.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedButton(onClick = {
-                        val cm = ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        val t = cm.primaryClip?.getItemAt(0)?.text?.toString()
-                        if (!t.isNullOrBlank()) { texto = t; Ajustes.put(ctx, "lista", t) }
-                    }, enabled = !corriendo) { Text("Pegar lista") }
-                    Spacer(Modifier.width(8.dp))
-                    OutlinedButton(onClick = { picker.launch("text/*") }, enabled = !corriendo) { Text("Abrir archivo") }
-                    Spacer(Modifier.width(8.dp))
-                    TextButton(onClick = { ayuda = true }) { Text("Ayuda") }
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Switch(checked = ladder, onCheckedChange = { ladder = it; Ajustes.putB(ctx, "ladder", it) })
-                    Spacer(Modifier.width(6.dp)); Text("Saldo", fontSize = 13.sp)
-                    Spacer(Modifier.width(12.dp))
-                    Switch(checked = buscarBanco, onCheckedChange = { buscarBanco = it; Ajustes.putB(ctx, "banco", it) })
-                    Spacer(Modifier.width(6.dp)); Text("Banco", fontSize = 13.sp)
-                }
-                Spacer(Modifier.height(6.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = { lanzar(Parser.parse(texto), true) }, enabled = !corriendo,
-                        modifier = Modifier.weight(1f).height(48.dp)) {
-                        Text(if (corriendo) "Revisando..." else "Revisar tarjetas", fontSize = 15.sp)
+                NavigationBarItem(
+                    selected = tab == 1,
+                    onClick = { tab = 1; revisando = false },
+                    icon = { Icon(Icons.Filled.List, null) },
+                    label = { Text("Historial", fontSize = 11.sp) },
+                    colors = navColors()
+                )
+                NavigationBarItem(
+                    selected = tab == 2,
+                    onClick = { tab = 2; revisando = false },
+                    icon = { Icon(Icons.Filled.Settings, null) },
+                    label = { Text("Ajustes", fontSize = 11.sp) },
+                    colors = navColors()
+                )
+            }
+        }
+    ) { pad ->
+        Box(Modifier.fillMaxSize().padding(pad)) {
+            when {
+                tab == 0 && revisando -> PantallaRevisar(
+                    texto = texto,
+                    onTexto = { texto = it; Ajustes.put(ctx, "lista", it) },
+                    resultados = resultados,
+                    completo = completo,
+                    onModo = { completo = it; Ajustes.putB(ctx, "ladder", it) },
+                    corriendo = corriendo,
+                    progreso = progreso,
+                    estadoTxt = estadoTxt,
+                    wv = wv,
+                    onAtras = { revisando = false },
+                    onLanzar = { lanzar(it, true) },
+                    onDetener = { job?.cancel() },
+                    onReintentar = {
+                        lanzar(resultados
+                            .filter { it.state in setOf("CONN_ERROR", "RETRY", "DECLINED") }
+                            .map { Card(it.idx, it.num, it.mm, it.yy, it.cvc) }, false)
                     }
-                    if (corriendo) OutlinedButton(onClick = { job?.cancel() }) { Text("Detener") }
-                }
-                if (corriendo) {
-                    Spacer(Modifier.height(6.dp))
-                    LinearProgressIndicator(progress = { progreso }, modifier = Modifier.fillMaxWidth())
-                }
-                Spacer(Modifier.height(4.dp))
-                Text(estadoTxt, fontSize = 12.sp, color = GRIS)
-
-                if (resultados.isNotEmpty()) {
-                    Spacer(Modifier.height(6.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(onClick = { compartirCsv(ctx, "vivas.csv", resultados.toList()) }) { Text("CSV") }
-                        OutlinedButton(onClick = { imprimirPdf(ctx, wv, "Tarjetas revisadas", resultados.toList()) { } }) { Text("PDF") }
-                        OutlinedButton(onClick = {
-                            val rojas = resultados.filter { it.state in setOf("CONN_ERROR", "RETRY", "DECLINED") }
-                            lanzar(rojas.map { Card(it.idx, it.num, it.mm, it.yy, it.cvc) }, false)
-                        }, enabled = !corriendo) { Text("Reintentar") }
-                    }
-                }
-                Spacer(Modifier.height(6.dp))
-                Leyenda()
-                Spacer(Modifier.height(6.dp))
-                if (resultados.isEmpty()) Text("Aqui veras los resultados.", fontSize = 12.sp, color = GRIS)
+                )
+                tab == 0 -> PantallaInicio(
+                    onRevisar = { tab = 0; revisando = true },
+                    onHistorial = { tab = 1 },
+                    onAjustes = { tab = 2 }
+                )
+                tab == 1 -> PantallaHistorial(wv)
+                else -> PantallaAjustes(onLimpiar = {
+                    texto = ""; Ajustes.put(ctx, "lista", ""); resultados.clear()
+                })
             }
-        }
-        itemsIndexed(resultados) { i, r -> FilaResultado(i + 1, r) }
-        item { Spacer(Modifier.height(20.dp)) }
-    }
-}
-
-@Composable
-fun FilaResultado(n: Int, r: Result) {
-    val c = colorEstado(r.state)
-    Column(Modifier.fillMaxWidth().padding(vertical = 5.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("$n. ", fontSize = 12.sp)
-            Text(r.num, fontFamily = FontFamily.Monospace, fontSize = 12.sp)
-            Spacer(Modifier.width(8.dp))
-            Surface(color = c.copy(alpha = 0.18f), shape = MaterialTheme.shapes.small) {
-                Text(textoEstado(r.state), color = c, fontSize = 11.sp,
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
-            }
-            Spacer(Modifier.weight(1f))
-            if (r.balance.isNotEmpty()) Text("saldo ${r.balance}", fontSize = 11.sp, color = AMBAR)
-        }
-        Text(
-            listOfNotNull(r.brand.ifEmpty { null }, r.tipo.ifEmpty { null }, r.banco.ifEmpty { null },
-                r.pais.ifEmpty { null }, "${r.mm}/${r.yy}", "cvc ${r.cvc}",
-                if (r.luhnOk) "numero OK" else "numero dudoso").joinToString(" - "),
-            fontSize = 11.sp, color = GRIS
-        )
-    }
-}
-
-@Composable
-fun PantallaHistorial(wv: WebView?) {
-    val ctx = LocalContext.current
-    var runs by remember { mutableStateOf<List<Run>>(emptyList()) }
-    var sel by remember { mutableStateOf<Run?>(null) }
-    LaunchedEffect(Unit) { runs = Historial.load(ctx) }
-
-    val s = sel
-    if (s != null) { DetalleRun(ctx, wv, s) { sel = null }; return }
-
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(14.dp)) {
-        item {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text("Historial", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.weight(1f))
-                if (runs.isNotEmpty()) TextButton(onClick = { Historial.clear(ctx); runs = emptyList() }) { Text("Vaciar") }
-            }
-            if (runs.isEmpty()) Text("Todavia no has hecho ningun chequeo.", color = GRIS)
-            Spacer(Modifier.height(6.dp))
-        }
-        items(runs) { r ->
-            Surface(color = MaterialTheme.colorScheme.surface, shape = MaterialTheme.shapes.medium,
-                modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp)) {
-                Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(r.fecha)),
-                            fontWeight = FontWeight.SemiBold)
-                        Text("${r.total} revisadas - ${r.vivas} sirven", fontSize = 12.sp, color = GRIS)
-                    }
-                    TextButton(onClick = { sel = r }) { Text("Ver") }
-                    TextButton(onClick = { Historial.remove(ctx, r.id); runs = Historial.load(ctx) }) { Text("Borrar") }
-                }
-            }
+            AndroidView(
+                factory = { c -> WebView(c).also { it.settings.javaScriptEnabled = true; wv = it } },
+                modifier = Modifier.size(2.dp)
+            )
         }
     }
 }
 
 @Composable
-fun DetalleRun(ctx: Context, wv: WebView?, run: Run, onBack: () -> Unit) {
-    val orden = run.results.sortedWith(Orden.comparador)
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(14.dp)) {
-        item {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = onBack) { Text("< Volver") }
-                Text(SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(run.fecha)),
-                    fontWeight = FontWeight.Bold)
-            }
-            Text("${run.total} revisadas - ${run.vivas} sirven", fontSize = 12.sp, color = GRIS)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = { compartirCsv(ctx, "vivas.csv", orden) }) { Text("CSV") }
-                OutlinedButton(onClick = { imprimirPdf(ctx, wv, "Tarjetas revisadas", orden) { } }) { Text("PDF") }
-            }
-            Spacer(Modifier.height(6.dp))
-        }
-        itemsIndexed(orden) { i, r -> FilaResultado(i + 1, r) }
-    }
-}
-
-@Composable
-fun PantallaAjustes() {
-    val ctx = LocalContext.current
-    var clave by remember { mutableStateOf(Ajustes.s(ctx, "clave_bin", "")) }
-    var hilos by remember { mutableStateOf(Ajustes.i(ctx, "hilos", 4).toString()) }
-    var proxys by remember { mutableStateOf(Ajustes.s(ctx, "proxies", "")) }
-
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp)) {
-        item {
-            Text("Ajustes", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(12.dp))
-
-            Text("Velocidad (tarjetas a la vez)", fontSize = 13.sp)
-            OutlinedTextField(value = hilos, onValueChange = {
-                hilos = it.filter { ch -> ch.isDigit() }.take(1)
-                Ajustes.putI(ctx, "hilos", hilos.toIntOrNull()?.coerceIn(1, 8) ?: 4)
-            }, modifier = Modifier.width(90.dp))
-
-            Spacer(Modifier.height(14.dp))
-            Text("Clave de datos bancarios (opcional)", fontSize = 13.sp)
-            Text("Pega una clave gratis de handyapi.com para no tener limite.", fontSize = 11.sp, color = GRIS)
-            OutlinedTextField(value = clave, onValueChange = { clave = it; Ajustes.put(ctx, "clave_bin", it) },
-                modifier = Modifier.fillMaxWidth(), singleLine = true)
-
-            Spacer(Modifier.height(14.dp))
-            Text("Proxies (opcional, uno por linea)", fontSize = 13.sp)
-            Text("Formato: host:puerto  o  host:puerto:usuario:clave.", fontSize = 11.sp, color = GRIS)
-            OutlinedTextField(value = proxys, onValueChange = { proxys = it; Ajustes.put(ctx, "proxies", it) },
-                modifier = Modifier.fillMaxWidth().height(120.dp),
-                textStyle = LocalTextStyle.current.copy(fontFamily = FontFamily.Monospace, fontSize = 12.sp))
-        }
-    }
-}
-
-fun compartirCsv(ctx: Context, nombre: String, rows: List<Result>) {
-    if (rows.isEmpty()) return
-    val head = listOf("#", "Numero", "Marca", "Tipo", "Banco", "Pais", "Exp", "CVC", "Estado", "Saldo", "AVS", "CVC", "Codigo")
-    val sb = StringBuilder(head.joinToString(",")).append("\n")
-    rows.forEachIndexed { i, r ->
-        sb.append(listOf(i + 1, r.num, r.brand, r.tipo, r.banco, r.pais, "${r.mm}/${r.yy}", r.cvc,
-            textoEstado(r.state), r.balance, r.avs, r.cvcCheck, r.decline)
-            .joinToString(",") { "\"$it\"" }).append("\n")
-    }
-    val intent = Intent(Intent.ACTION_SEND).apply {
-        type = "text/csv"; putExtra(Intent.EXTRA_SUBJECT, nombre); putExtra(Intent.EXTRA_TEXT, sb.toString())
-    }
-    ctx.startActivity(Intent.createChooser(intent, "Compartir"))
-}
-
-fun imprimirPdf(ctx: Context, wv: WebView?, titulo: String, rows: List<Result>, onDone: (Boolean) -> Unit) {
-    if (wv == null || rows.isEmpty()) return
-    val sb = StringBuilder()
-    sb.append("<html><head><meta charset='utf-8'><style>")
-    sb.append("@page{size:A4 landscape;margin:10mm}body{font-family:sans-serif}h3{margin:0 0 8px}")
-    sb.append("table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:3px;font-size:9px}")
-    sb.append("th{background:#1f2937;color:#fff}</style></head><body>")
-    sb.append("<h3>$titulo - de las mas faciles de usar a las mas dificiles</h3>")
-    sb.append("<table><tr><th>#</th><th>Numero</th><th>Marca</th><th>Tipo</th><th>Banco</th>")
-    sb.append("<th>Pais</th><th>Exp</th><th>CVC</th><th>Estado</th><th>Saldo est.</th>")
-    sb.append("<th>AVS</th><th>CVC</th><th>Codigo</th></tr>")
-    rows.forEachIndexed { i, r ->
-        sb.append("<tr><td>${i + 1}</td><td>${r.num}</td><td>${r.brand}</td><td>${r.tipo}</td>")
-        sb.append("<td>${r.banco}</td><td>${r.pais}</td><td>${r.mm}/${r.yy}</td><td>${r.cvc}</td>")
-        sb.append("<td>${textoEstado(r.state)}</td><td>${r.balance}</td><td>${r.avs}</td>")
-        sb.append("<td>${r.cvcCheck}</td><td>${r.decline}</td></tr>")
-    }
-    sb.append("</table></body></html>")
-    wv.webViewClient = object : WebViewClient() {
-        override fun onPageFinished(view: WebView, url: String) {
-            onDone(true)
-            val pm = ctx.getSystemService(Context.PRINT_SERVICE) as PrintManager
-            pm.print("vivas", view.createPrintDocumentAdapter("vivas"), PrintAttributes.Builder().build())
-        }
-    }
-    wv.loadDataWithBaseURL(null, sb.toString(), "text/html", "utf-8", null)
-}
-EOF
-
-echo "== Proyecto creado =="
+fun PantallaInicio(onRevisar: () -> Unit, onHistorial: () -> Unit, onAjustes: () -> Unit) {
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(
