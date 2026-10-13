@@ -48,8 +48,8 @@ android {
         applicationId = "com.venice.ccchecker"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
     }
     buildFeatures { compose = true }
     compileOptions {
@@ -82,7 +82,6 @@ cat > app/src/main/AndroidManifest.xml <<'EOF'
     <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:allowBackup="true"
-        android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher"
         android:label="Validador CC"
@@ -104,16 +103,16 @@ EOF
 
 cat > app/src/main/res/values/colors.xml <<'EOF'
 <resources>
-    <color name="ic_launcher_background">#0F1115</color>
+    <color name="ic_launcher_background">#0F172A</color>
 </resources>
 EOF
 
 cat > app/src/main/res/values/themes.xml <<'EOF'
 <resources>
     <style name="Theme.CCChecker" parent="@android:style/Theme.Material.NoActionBar">
-        <item name="android:statusBarColor">#0F1115</item>
-        <item name="android:navigationBarColor">#0F1115</item>
-        <item name="android:windowBackground">#0F1115</item>
+        <item name="android:statusBarColor">#0F172A</item>
+        <item name="android:navigationBarColor">#0F172A</item>
+        <item name="android:windowBackground">#0F172A</item>
     </style>
 </resources>
 EOF
@@ -142,7 +141,7 @@ cat > app/src/main/res/mipmap/ic_launcher.xml <<'EOF'
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp"
     android:viewportWidth="108" android:viewportHeight="108">
-    <path android:fillColor="#0F1115" android:pathData="M0,0h108v108h-108z"/>
+    <path android:fillColor="#0F172A" android:pathData="M0,0h108v108h-108z"/>
     <path android:fillColor="#2563EB"
         android:pathData="M30,36h48a5,5 0 0 1 5,5v26a5,5 0 0 1 -5,5h-48a5,5 0 0 1 -5,-5v-26a5,5 0 0 1 5,-5z"/>
     <path android:fillColor="#1E3A8A" android:pathData="M25,46h58v7h-58z"/>
@@ -627,7 +626,8 @@ val VERDE = Color(0xFF22C55E)
 val AMBAR = Color(0xFFFBBF24)
 val NARANJA = Color(0xFFFB923C)
 val ROJO = Color(0xFFEF4444)
-val GRIS = Color(0xFF9AA3B2)
+val GRIS = Color(0xFF94A3B8)
+val AZUL = Color(0xFF2563EB)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -640,11 +640,18 @@ class MainActivity : ComponentActivity() {
 fun TemaApp(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = darkColorScheme(
-            primary = Color(0xFF3B82F6), onPrimary = Color.White,
-            background = Color(0xFF0F1115), onBackground = Color(0xFFE6E8EE),
-            surface = Color(0xFF161922), onSurface = Color(0xFFE6E8EE)
-        ), content = content
-    )
+            primary = AZUL,
+            onPrimary = Color.White,
+            background = Color(0xFF0F172A),
+            onBackground = Color(0xFFE2E8F0),
+            surface = Color(0xFF1E293B),
+            onSurface = Color(0xFFE2E8F0)
+        )
+    ) {
+        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            content()
+        }
+    }
 }
 
 fun colorEstado(s: String): Color = when (s) {
@@ -652,7 +659,7 @@ fun colorEstado(s: String): Color = when (s) {
     "LIVE_NO_FUNDS" -> AMBAR
     "PENDING_3DS" -> NARANJA
     "RETRY", "DECLINED", "RESTRICTED" -> ROJO
-    else -> Color(0xFF94A3B8)
+    else -> GRIS
 }
 
 fun textoEstado(s: String): String = when (s) {
@@ -669,31 +676,43 @@ fun textoEstado(s: String): String = when (s) {
 }
 
 @Composable
+fun Cabecera(titulo: String, sub: String) {
+    Surface(color = AZUL, shape = MaterialTheme.shapes.medium, modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(14.dp)) {
+            Text(titulo, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text(sub, color = Color(0xFFDCE6F7), fontSize = 12.sp)
+        }
+    }
+}
+
+@Composable
 fun Pantalla() {
     var tab by remember { mutableIntStateOf(0) }
     var wv by remember { mutableStateOf<WebView?>(null) }
 
-    Scaffold(bottomBar = {
-        NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
-            NavigationBarItem(selected = tab == 0, onClick = { tab = 0 },
-                icon = { Text("1") }, label = { Text("Revisar") })
-            NavigationBarItem(selected = tab == 1, onClick = { tab = 1 },
-                icon = { Text("2") }, label = { Text("Historial") })
-            NavigationBarItem(selected = tab == 2, onClick = { tab = 2 },
-                icon = { Text("3") }, label = { Text("Ajustes") })
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        contentColor = MaterialTheme.colorScheme.onBackground,
+        bottomBar = {
+            NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
+                NavigationBarItem(selected = tab == 0, onClick = { tab = 0 },
+                    icon = { Text("1") }, label = { Text("Revisar") })
+                NavigationBarItem(selected = tab == 1, onClick = { tab = 1 },
+                    icon = { Text("2") }, label = { Text("Historial") })
+                NavigationBarItem(selected = tab == 2, onClick = { tab = 2 },
+                    icon = { Text("3") }, label = { Text("Ajustes") })
+            }
         }
-    }) { pad ->
-        Column(Modifier.fillMaxSize().padding(pad)) {
-            Box(Modifier.weight(1f)) {
-                when (tab) {
-                    0 -> PantallaNuevo(wv)
-                    1 -> PantallaHistorial(wv)
-                    else -> PantallaAjustes()
-                }
+    ) { pad ->
+        Box(Modifier.fillMaxSize().padding(pad)) {
+            when (tab) {
+                0 -> PantallaNuevo(wv)
+                1 -> PantallaHistorial(wv)
+                else -> PantallaAjustes()
             }
             AndroidView(
                 factory = { c -> WebView(c).also { it.settings.javaScriptEnabled = true; wv = it } },
-                modifier = Modifier.fillMaxWidth().height(1.dp)
+                modifier = Modifier.size(2.dp)
             )
         }
     }
@@ -701,16 +720,18 @@ fun Pantalla() {
 
 @Composable
 fun Leyenda() {
-    listOf(
-        VERDE to "SIRVE: aprobó, se puede usar",
-        AMBAR to "SIN SALDO: existe, sin fondos",
-        NARANJA to "PIDE 3DS: existe, confirma en el banco",
-        ROJO to "RECHAZADA: no sirve o falló la conexión"
-    ).forEach { (c, t) ->
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 1.dp)) {
-            Box(Modifier.size(9.dp).background(c, MaterialTheme.shapes.small))
-            Spacer(Modifier.width(7.dp))
-            Text(t, fontSize = 11.sp, color = GRIS)
+    Column {
+        listOf(
+            VERDE to "SIRVE: aprobó, se puede usar",
+            AMBAR to "SIN SALDO: existe, sin fondos",
+            NARANJA to "PIDE 3DS: existe, confirma en el banco",
+            ROJO to "RECHAZADA: no sirve o falló la conexión"
+        ).forEach { (c, t) ->
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 1.dp)) {
+                Box(Modifier.size(9.dp).background(c, MaterialTheme.shapes.small))
+                Spacer(Modifier.width(7.dp))
+                Text(t, fontSize = 11.sp, color = GRIS)
+            }
         }
     }
 }
@@ -725,7 +746,7 @@ fun PantallaNuevo(wv: WebView?) {
     var buscarBanco by remember { mutableStateOf(Ajustes.b(ctx, "banco", true)) }
     var corriendo by remember { mutableStateOf(false) }
     var progreso by remember { mutableFloatStateOf(0f) }
-    var estadoTxt by remember { mutableStateOf("Pega tu lista y pulsa «Revisar tarjetas».") }
+    var estadoTxt by remember { mutableStateOf("Pega tu lista y pulsa Revisar tarjetas.") }
     val resultados = remember { mutableStateListOf<Result>() }
     var ayuda by remember { mutableStateOf(false) }
     var job by remember { mutableStateOf<Job?>(null) }
@@ -740,16 +761,16 @@ fun PantallaNuevo(wv: WebView?) {
     if (ayuda) AlertDialog(
         onDismissRequest = { ayuda = false },
         confirmButton = { TextButton(onClick = { ayuda = false }) { Text("Entendido") } },
-        title = { Text("Cómo se usa") },
+        title = { Text("Como se usa") },
         text = {
             Column {
-                Text("1. Copia tus tarjetas (una por línea: 4111111111111111|12|29|123).")
+                Text("1. Copia tus tarjetas (una por linea: 4111111111111111|12|29|123).")
                 Spacer(Modifier.height(6.dp))
-                Text("2. Pulsa «Pegar lista» o «Abrir archivo».")
+                Text("2. Pulsa Pegar lista o Abrir archivo.")
                 Spacer(Modifier.height(6.dp))
-                Text("3. Pulsa «Revisar tarjetas» y espera. Al final guardas el PDF.")
+                Text("3. Pulsa Revisar tarjetas y espera. Al final guardas el PDF.")
                 Spacer(Modifier.height(10.dp))
-                Text("Verde = sirve. Amarillo = existe pero sin saldo. Naranja = existe pero pide confirmar en el banco. Rojo = no sirve.", color = GRIS)
+                Text("Verde = sirve. Amarillo = existe sin saldo. Naranja = pide confirmar en el banco. Rojo = no sirve.", color = GRIS)
             }
         }
     )
@@ -775,7 +796,7 @@ fun PantallaNuevo(wv: WebView?) {
                                 resultados.removeAll { it.idx == c.idx }
                                 resultados.add(r); done++
                                 progreso = done.toFloat() / cards.size
-                                estadoTxt = "$done de ${cards.size} · sirven: ${resultados.count { it.isLive }}"
+                                estadoTxt = "$done de ${cards.size} - sirven: ${resultados.count { it.isLive }}"
                             }
                         }
                     }.awaitAll()
@@ -783,76 +804,79 @@ fun PantallaNuevo(wv: WebView?) {
                 val ord = resultados.sortedWith(Orden.comparador)
                 resultados.clear(); resultados.addAll(ord)
                 Historial.add(ctx, Run(System.currentTimeMillis(), System.currentTimeMillis(), ord))
-                estadoTxt = "Listo. ${cards.size} revisadas · ${ord.count { it.isLive }} sirven."
+                estadoTxt = "Listo. ${cards.size} revisadas - ${ord.count { it.isLive }} sirven."
             } catch (e: CancellationException) {
                 estadoTxt = "Detenido. ${resultados.count { it.isLive }} sirven."
             } finally { corriendo = false; job = null }
         }
     }
 
-    Column(Modifier.fillMaxSize().padding(horizontal = 14.dp)) {
-        Text("Validador de tarjetas", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-        Text("Sabe cuáles sirven. Sin tecnicismos.", fontSize = 12.sp, color = GRIS)
-        Spacer(Modifier.height(8.dp))
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(14.dp)) {
+        item {
+            Column {
+                Cabecera("Validador de tarjetas", "Sabe cuales sirven. Sin tecnicismos.")
+                Spacer(Modifier.height(10.dp))
 
-        OutlinedTextField(
-            value = texto, onValueChange = { texto = it; Ajustes.put(ctx, "lista", it) },
-            label = { Text("Tus tarjetas (una por línea)") },
-            placeholder = { Text("4111111111111111|12|29|123") },
-            modifier = Modifier.fillMaxWidth().height(110.dp),
-            textStyle = LocalTextStyle.current.copy(fontFamily = FontFamily.Monospace, fontSize = 12.sp)
-        )
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            OutlinedButton(onClick = {
-                val cm = ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                val t = cm.primaryClip?.getItemAt(0)?.text?.toString()
-                if (!t.isNullOrBlank()) { texto = t; Ajustes.put(ctx, "lista", t) }
-            }, enabled = !corriendo) { Text("Pegar lista") }
-            Spacer(Modifier.width(8.dp))
-            OutlinedButton(onClick = { picker.launch("text/*") }, enabled = !corriendo) { Text("Abrir archivo") }
-            Spacer(Modifier.width(8.dp))
-            TextButton(onClick = { ayuda = true }) { Text("Ayuda") }
-        }
+                OutlinedTextField(
+                    value = texto, onValueChange = { texto = it; Ajustes.put(ctx, "lista", it) },
+                    label = { Text("Tus tarjetas (una por linea)") },
+                    placeholder = { Text("4111111111111111|12|29|123") },
+                    modifier = Modifier.fillMaxWidth().height(110.dp),
+                    textStyle = LocalTextStyle.current.copy(fontFamily = FontFamily.Monospace, fontSize = 12.sp)
+                )
+                Spacer(Modifier.height(6.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedButton(onClick = {
+                        val cm = ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        val t = cm.primaryClip?.getItemAt(0)?.text?.toString()
+                        if (!t.isNullOrBlank()) { texto = t; Ajustes.put(ctx, "lista", t) }
+                    }, enabled = !corriendo) { Text("Pegar lista") }
+                    Spacer(Modifier.width(8.dp))
+                    OutlinedButton(onClick = { picker.launch("text/*") }, enabled = !corriendo) { Text("Abrir archivo") }
+                    Spacer(Modifier.width(8.dp))
+                    TextButton(onClick = { ayuda = true }) { Text("Ayuda") }
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Switch(checked = ladder, onCheckedChange = { ladder = it; Ajustes.putB(ctx, "ladder", it) })
+                    Spacer(Modifier.width(6.dp)); Text("Saldo", fontSize = 13.sp)
+                    Spacer(Modifier.width(12.dp))
+                    Switch(checked = buscarBanco, onCheckedChange = { buscarBanco = it; Ajustes.putB(ctx, "banco", it) })
+                    Spacer(Modifier.width(6.dp)); Text("Banco", fontSize = 13.sp)
+                }
+                Spacer(Modifier.height(6.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onClick = { lanzar(Parser.parse(texto), true) }, enabled = !corriendo,
+                        modifier = Modifier.weight(1f).height(48.dp)) {
+                        Text(if (corriendo) "Revisando..." else "Revisar tarjetas", fontSize = 15.sp)
+                    }
+                    if (corriendo) OutlinedButton(onClick = { job?.cancel() }) { Text("Detener") }
+                }
+                if (corriendo) {
+                    Spacer(Modifier.height(6.dp))
+                    LinearProgressIndicator(progress = { progreso }, modifier = Modifier.fillMaxWidth())
+                }
+                Spacer(Modifier.height(4.dp))
+                Text(estadoTxt, fontSize = 12.sp, color = GRIS)
 
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Switch(checked = ladder, onCheckedChange = { ladder = it; Ajustes.putB(ctx, "ladder", it) })
-            Spacer(Modifier.width(6.dp)); Text("Saldo", fontSize = 13.sp)
-            Spacer(Modifier.width(12.dp))
-            Switch(checked = buscarBanco, onCheckedChange = { buscarBanco = it; Ajustes.putB(ctx, "banco", it) })
-            Spacer(Modifier.width(6.dp)); Text("Banco", fontSize = 13.sp)
-        }
-
-        Spacer(Modifier.height(6.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { lanzar(Parser.parse(texto), true) }, enabled = !corriendo,
-                modifier = Modifier.weight(1f).height(48.dp)) {
-                Text(if (corriendo) "Revisando..." else "Revisar tarjetas", fontSize = 15.sp)
+                if (resultados.isNotEmpty()) {
+                    Spacer(Modifier.height(6.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = { compartirCsv(ctx, "vivas.csv", resultados.toList()) }) { Text("CSV") }
+                        OutlinedButton(onClick = { imprimirPdf(ctx, wv, "Tarjetas revisadas", resultados.toList()) { } }) { Text("PDF") }
+                        OutlinedButton(onClick = {
+                            val rojas = resultados.filter { it.state in setOf("CONN_ERROR", "RETRY", "DECLINED") }
+                            lanzar(rojas.map { Card(it.idx, it.num, it.mm, it.yy, it.cvc) }, false)
+                        }, enabled = !corriendo) { Text("Reintentar") }
+                    }
+                }
+                Spacer(Modifier.height(6.dp))
+                Leyenda()
+                Spacer(Modifier.height(6.dp))
+                if (resultados.isEmpty()) Text("Aqui veras los resultados.", fontSize = 12.sp, color = GRIS)
             }
-            if (corriendo) OutlinedButton(onClick = { job?.cancel() }) { Text("Detener") }
         }
-
-        if (corriendo) {
-            Spacer(Modifier.height(6.dp))
-            LinearProgressIndicator(progress = { progreso }, modifier = Modifier.fillMaxWidth())
-        }
-        Text(estadoTxt, fontSize = 12.sp, color = GRIS)
-
-        if (resultados.isNotEmpty()) {
-            Spacer(Modifier.height(4.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = { compartirCsv(ctx, "vivas.csv", resultados.toList()) }) { Text("CSV") }
-                OutlinedButton(onClick = { imprimirPdf(ctx, wv, "Tarjetas revisadas", resultados.toList()) { } }) { Text("PDF") }
-                OutlinedButton(onClick = {
-                    val rojas = resultados.filter { it.state in setOf("CONN_ERROR", "RETRY", "DECLINED") }
-                    lanzar(rojas.map { Card(it.idx, it.num, it.mm, it.yy, it.cvc) }, false)
-                }, enabled = !corriendo) { Text("Reintentar rojas") }
-            }
-        }
-
-        Leyenda()
-        LazyColumn(Modifier.fillMaxWidth().weight(1f)) {
-            itemsIndexed(resultados) { i, r -> FilaResultado(i + 1, r) }
-        }
+        itemsIndexed(resultados) { i, r -> FilaResultado(i + 1, r) }
+        item { Spacer(Modifier.height(20.dp)) }
     }
 }
 
@@ -874,7 +898,7 @@ fun FilaResultado(n: Int, r: Result) {
         Text(
             listOfNotNull(r.brand.ifEmpty { null }, r.tipo.ifEmpty { null }, r.banco.ifEmpty { null },
                 r.pais.ifEmpty { null }, "${r.mm}/${r.yy}", "cvc ${r.cvc}",
-                if (r.luhnOk) "número OK" else "número dudoso").joinToString(" · "),
+                if (r.luhnOk) "numero OK" else "numero dudoso").joinToString(" - "),
             fontSize = 11.sp, color = GRIS
         )
     }
@@ -890,26 +914,27 @@ fun PantallaHistorial(wv: WebView?) {
     val s = sel
     if (s != null) { DetalleRun(ctx, wv, s) { sel = null }; return }
 
-    Column(Modifier.fillMaxSize().padding(horizontal = 14.dp)) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text("Historial", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.weight(1f))
-            if (runs.isNotEmpty()) TextButton(onClick = { Historial.clear(ctx); runs = emptyList() }) { Text("Vaciar") }
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(14.dp)) {
+        item {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text("Historial", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.weight(1f))
+                if (runs.isNotEmpty()) TextButton(onClick = { Historial.clear(ctx); runs = emptyList() }) { Text("Vaciar") }
+            }
+            if (runs.isEmpty()) Text("Todavia no has hecho ningun chequeo.", color = GRIS)
+            Spacer(Modifier.height(6.dp))
         }
-        if (runs.isEmpty()) { Spacer(Modifier.height(20.dp)); Text("Todavía no has hecho ningún chequeo.", color = GRIS) }
-        LazyColumn {
-            items(runs) { r ->
-                Surface(color = MaterialTheme.colorScheme.surface, shape = MaterialTheme.shapes.medium,
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp)) {
-                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(r.fecha)),
-                                fontWeight = FontWeight.SemiBold)
-                            Text("${r.total} revisadas · ${r.vivas} sirven", fontSize = 12.sp, color = GRIS)
-                        }
-                        TextButton(onClick = { sel = r }) { Text("Ver") }
-                        TextButton(onClick = { Historial.remove(ctx, r.id); runs = Historial.load(ctx) }) { Text("Borrar") }
+        items(runs) { r ->
+            Surface(color = MaterialTheme.colorScheme.surface, shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp)) {
+                Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(r.fecha)),
+                            fontWeight = FontWeight.SemiBold)
+                        Text("${r.total} revisadas - ${r.vivas} sirven", fontSize = 12.sp, color = GRIS)
                     }
+                    TextButton(onClick = { sel = r }) { Text("Ver") }
+                    TextButton(onClick = { Historial.remove(ctx, r.id); runs = Historial.load(ctx) }) { Text("Borrar") }
                 }
             }
         }
@@ -919,18 +944,21 @@ fun PantallaHistorial(wv: WebView?) {
 @Composable
 fun DetalleRun(ctx: Context, wv: WebView?, run: Run, onBack: () -> Unit) {
     val orden = run.results.sortedWith(Orden.comparador)
-    Column(Modifier.fillMaxSize().padding(horizontal = 14.dp)) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = onBack) { Text("< Volver") }
-            Text(SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(run.fecha)),
-                fontWeight = FontWeight.Bold)
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(14.dp)) {
+        item {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                TextButton(onClick = onBack) { Text("< Volver") }
+                Text(SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(run.fecha)),
+                    fontWeight = FontWeight.Bold)
+            }
+            Text("${run.total} revisadas - ${run.vivas} sirven", fontSize = 12.sp, color = GRIS)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = { compartirCsv(ctx, "vivas.csv", orden) }) { Text("CSV") }
+                OutlinedButton(onClick = { imprimirPdf(ctx, wv, "Tarjetas revisadas", orden) { } }) { Text("PDF") }
+            }
+            Spacer(Modifier.height(6.dp))
         }
-        Text("${run.total} revisadas · ${run.vivas} sirven", fontSize = 12.sp, color = GRIS)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = { compartirCsv(ctx, "vivas.csv", orden) }) { Text("CSV") }
-            OutlinedButton(onClick = { imprimirPdf(ctx, wv, "Tarjetas revisadas", orden) { } }) { Text("PDF") }
-        }
-        LazyColumn(Modifier.weight(1f)) { itemsIndexed(orden) { i, r -> FilaResultado(i + 1, r) } }
+        itemsIndexed(orden) { i, r -> FilaResultado(i + 1, r) }
     }
 }
 
@@ -941,28 +969,30 @@ fun PantallaAjustes() {
     var hilos by remember { mutableStateOf(Ajustes.i(ctx, "hilos", 4).toString()) }
     var proxys by remember { mutableStateOf(Ajustes.s(ctx, "proxies", "")) }
 
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Text("Ajustes", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(12.dp))
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp)) {
+        item {
+            Text("Ajustes", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(12.dp))
 
-        Text("Velocidad (tarjetas a la vez)", fontSize = 13.sp)
-        OutlinedTextField(value = hilos, onValueChange = {
-            hilos = it.filter { ch -> ch.isDigit() }.take(1)
-            Ajustes.putI(ctx, "hilos", hilos.toIntOrNull()?.coerceIn(1, 8) ?: 4)
-        }, modifier = Modifier.width(90.dp))
+            Text("Velocidad (tarjetas a la vez)", fontSize = 13.sp)
+            OutlinedTextField(value = hilos, onValueChange = {
+                hilos = it.filter { ch -> ch.isDigit() }.take(1)
+                Ajustes.putI(ctx, "hilos", hilos.toIntOrNull()?.coerceIn(1, 8) ?: 4)
+            }, modifier = Modifier.width(90.dp))
 
-        Spacer(Modifier.height(14.dp))
-        Text("Clave de datos bancarios (opcional)", fontSize = 13.sp)
-        Text("Pega una clave gratis de handyapi.com para no tener límite. Si la dejas vacía usa el servicio público (lento).", fontSize = 11.sp, color = GRIS)
-        OutlinedTextField(value = clave, onValueChange = { clave = it; Ajustes.put(ctx, "clave_bin", it) },
-            modifier = Modifier.fillMaxWidth(), singleLine = true)
+            Spacer(Modifier.height(14.dp))
+            Text("Clave de datos bancarios (opcional)", fontSize = 13.sp)
+            Text("Pega una clave gratis de handyapi.com para no tener limite.", fontSize = 11.sp, color = GRIS)
+            OutlinedTextField(value = clave, onValueChange = { clave = it; Ajustes.put(ctx, "clave_bin", it) },
+                modifier = Modifier.fillMaxWidth(), singleLine = true)
 
-        Spacer(Modifier.height(14.dp))
-        Text("Proxies (opcional, uno por línea)", fontSize = 13.sp)
-        Text("Formato: host:puerto  ó  host:puerto:usuario:clave. Si está vacío va directo.", fontSize = 11.sp, color = GRIS)
-        OutlinedTextField(value = proxys, onValueChange = { proxys = it; Ajustes.put(ctx, "proxies", it) },
-            modifier = Modifier.fillMaxWidth().height(120.dp),
-            textStyle = LocalTextStyle.current.copy(fontFamily = FontFamily.Monospace, fontSize = 12.sp))
+            Spacer(Modifier.height(14.dp))
+            Text("Proxies (opcional, uno por linea)", fontSize = 13.sp)
+            Text("Formato: host:puerto  o  host:puerto:usuario:clave.", fontSize = 11.sp, color = GRIS)
+            OutlinedTextField(value = proxys, onValueChange = { proxys = it; Ajustes.put(ctx, "proxies", it) },
+                modifier = Modifier.fillMaxWidth().height(120.dp),
+                textStyle = LocalTextStyle.current.copy(fontFamily = FontFamily.Monospace, fontSize = 12.sp))
+        }
     }
 }
 
