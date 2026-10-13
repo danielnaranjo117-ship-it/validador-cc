@@ -3,6 +3,12 @@ set -e
 
 echo "== Speed CC - construyendo =="
 
+rm -rf app/src/main/java
+rm -rf app/src/main/res
+rm -f app/src/main/AndroidManifest.xml
+rm -f app/build.gradle.kts
+rm -f settings.gradle.kts build.gradle.kts gradle.properties
+
 mkdir -p app/src/main/java/com/venice/ccchecker
 mkdir -p app/src/main/res/values
 mkdir -p app/src/main/res/drawable
@@ -29,7 +35,7 @@ plugins {
 EOF
 
 cat > gradle.properties <<'EOF'
-org.gradle.jvmargs=-Xmx2048m
+org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
 android.useAndroidX=true
 kotlin.code.style=official
 EOF
@@ -49,8 +55,8 @@ android {
         applicationId = "com.venice.ccchecker"
         minSdk = 24
         targetSdk = 34
-        versionCode = 7
-        versionName = "3.0"
+        versionCode = 9
+        versionName = "4.0"
     }
 
     buildFeatures { compose = true }
@@ -295,6 +301,7 @@ object Ajustes {
     fun i(ctx: Context, k: String, d: Int) = sp(ctx).getInt(k, d)
     fun putI(ctx: Context, k: String, v: Int) { sp(ctx).edit().putInt(k, v).apply() }
 }
+// FIN_DATOS
 EOF
 
 cat > app/src/main/java/com/venice/ccchecker/Checker.kt <<'EOF'
@@ -579,6 +586,7 @@ object Checker {
             tipo, banco, pais, decline, avs, cvcCheck, balance)
     }
 }
+// FIN_CHECKER
 EOF
 
 cat > app/src/main/java/com/venice/ccchecker/MainActivity.kt <<'EOF'
@@ -602,11 +610,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -639,18 +646,19 @@ import java.util.Date
 import java.util.Locale
 
 val NEGRO = Color(0xFF0B0B0B)
-val FONDO = Color(0xFF121212)
-val CARBON = Color(0xFF1A1A1A)
-val CARBON2 = Color(0xFF141414)
+val FONDO = Color(0xFF1A1A1A)
+val CARBON = Color(0xFF262626)
+val CARBON2 = Color(0xFF333333)
 val DORADO = Color(0xFFD4AF37)
 val BLANCO = Color(0xFFFFFFFF)
-val GRIS = Color(0xFF9CA3AF)
-val GRIS2 = Color(0xFF6B7280)
+val GRIS = Color(0xFFBBBBBB)
+val GRIS2 = Color(0xFF888888)
 val VERDE = Color(0xFF22C55E)
 val ROJO = Color(0xFFEF4444)
 val AMBAR = Color(0xFFFBBF24)
 val NARANJA = Color(0xFFFB923C)
-val BORDE = Color(0xFF262626)
+val BORDE = Color(0xFF444444)
+val ROJIZO = Color(0xFFFF2A2A)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -723,15 +731,13 @@ fun Rayo(size: androidx.compose.ui.unit.Dp, color: Color = DORADO) {
 @Composable
 fun Marca(grande: Boolean = false) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Surface(
-            color = CARBON2, shape = RoundedCornerShape(if (grande) 18.dp else 12.dp),
-            border = BorderStroke(1.5.dp, DORADO)
-        ) {
-            Box(
-                Modifier.size(if (grande) 66.dp else 40.dp),
-                contentAlignment = Alignment.Center
-            ) { Rayo(if (grande) 32.dp else 20.dp) }
-        }
+        Box(
+            Modifier.size(if (grande) 66.dp else 40.dp)
+                .clip(RoundedCornerShape(if (grande) 18.dp else 12.dp))
+                .background(CARBON2)
+                .border(1.5.dp, DORADO, RoundedCornerShape(if (grande) 18.dp else 12.dp)),
+            contentAlignment = Alignment.Center
+        ) { Rayo(if (grande) 32.dp else 20.dp) }
         Spacer(Modifier.width(if (grande) 14.dp else 10.dp))
         Column {
             Text(
@@ -749,14 +755,17 @@ fun Marca(grande: Boolean = false) {
 @Composable
 fun Tarjeta(
     modifier: Modifier = Modifier,
-    borde: Color = DORADO.copy(alpha = 0.22f),
+    borde: Color = BORDE,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Surface(
-        color = CARBON, shape = RoundedCornerShape(18.dp),
-        border = BorderStroke(1.dp, borde),
-        modifier = modifier.fillMaxWidth()
-    ) { Column(Modifier.padding(16.dp), content = content) }
+    Column(
+        modifier.fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(CARBON)
+            .border(1.dp, borde, RoundedCornerShape(18.dp))
+            .padding(16.dp),
+        content = content
+    )
 }
 
 @Composable
@@ -784,67 +793,76 @@ fun BotonDorado(
 
 @Composable
 fun BotonSuave(texto: String, icono: ImageVector? = null, onClick: () -> Unit) {
-    Surface(
-        color = CARBON2, shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, BORDE),
-        modifier = Modifier.clickable { onClick() }
+    Row(
+        Modifier.clip(RoundedCornerShape(12.dp))
+            .background(CARBON2)
+            .border(1.dp, BORDE, RoundedCornerShape(12.dp))
+            .clickable { onClick() }
+            .padding(horizontal = 12.dp, vertical = 9.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(Modifier.padding(horizontal = 12.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
-            if (icono != null) {
-                Icon(icono, null, tint = DORADO, modifier = Modifier.size(15.dp))
-                Spacer(Modifier.width(6.dp))
-            }
-            Text(texto, color = BLANCO, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+        if (icono != null) {
+            Icon(icono, null, tint = DORADO, modifier = Modifier.size(15.dp))
+            Spacer(Modifier.width(6.dp))
         }
+        Text(texto, color = BLANCO, fontSize = 12.sp, fontWeight = FontWeight.Medium)
     }
 }
 
 @Composable
 fun FilaFuncion(icono: ImageVector, titulo: String, sub: String, onClick: () -> Unit) {
-    Surface(
-        color = CARBON, shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, BORDE),
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable { onClick() }
+    Row(
+        Modifier.fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(CARBON)
+            .border(1.dp, BORDE, RoundedCornerShape(16.dp))
+            .clickable { onClick() }
+            .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                Modifier.size(44.dp).clip(RoundedCornerShape(12.dp))
-                    .background(DORADO.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center
-            ) { Icon(icono, null, tint = DORADO, modifier = Modifier.size(22.dp)) }
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
-                Text(titulo, color = BLANCO, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
-                Text(sub, color = GRIS, fontSize = 12.sp)
-            }
-            Icon(Icons.Filled.KeyboardArrowRight, null, tint = GRIS)
+        Box(
+            Modifier.size(44.dp).clip(RoundedCornerShape(12.dp))
+                .background(DORADO.copy(alpha = 0.18f)),
+            contentAlignment = Alignment.Center
+        ) { Icon(icono, null, tint = DORADO, modifier = Modifier.size(22.dp)) }
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Text(titulo, color = BLANCO, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+            Text(sub, color = GRIS, fontSize = 12.sp)
         }
+        Icon(Icons.Filled.KeyboardArrowRight, null, tint = GRIS)
     }
 }
 
 @Composable
 fun MiniBadge(icono: ImageVector, titulo: String, sub: String) {
-    Surface(color = CARBON2, shape = RoundedCornerShape(12.dp), border = BorderStroke(1.dp, BORDE)) {
-        Column(Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(icono, null, tint = VERDE, modifier = Modifier.size(13.dp))
-                Spacer(Modifier.width(4.dp))
-                Text(titulo, color = BLANCO, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-            }
-            Text(sub, color = GRIS2, fontSize = 10.sp)
+    Column(
+        Modifier.clip(RoundedCornerShape(12.dp))
+            .background(CARBON2)
+            .border(1.dp, BORDE, RoundedCornerShape(12.dp))
+            .padding(horizontal = 10.dp, vertical = 8.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(icono, null, tint = VERDE, modifier = Modifier.size(13.dp))
+            Spacer(Modifier.width(4.dp))
+            Text(titulo, color = BLANCO, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
         }
+        Text(sub, color = GRIS2, fontSize = 10.sp)
     }
 }
 
 @Composable
 fun ChipEstado(state: String) {
     val c = colorEstado(state)
-    Surface(color = c.copy(alpha = 0.14f), shape = RoundedCornerShape(50)) {
-        Row(Modifier.padding(horizontal = 8.dp, vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(iconoEstado(state), null, tint = c, modifier = Modifier.size(12.dp))
-            Spacer(Modifier.width(4.dp))
-            Text(textoEstado(state), color = c, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-        }
+    Row(
+        Modifier.clip(RoundedCornerShape(50)).background(c.copy(alpha = 0.22f))
+            .padding(horizontal = 8.dp, vertical = 3.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(iconoEstado(state), null, tint = c, modifier = Modifier.size(12.dp))
+        Spacer(Modifier.width(4.dp))
+        Text(textoEstado(state), color = c, fontSize = 10.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -852,7 +870,7 @@ fun ChipEstado(state: String) {
 fun navColors() = NavigationBarItemDefaults.colors(
     selectedIconColor = DORADO,
     selectedTextColor = DORADO,
-    indicatorColor = DORADO.copy(alpha = 0.14f),
+    indicatorColor = DORADO.copy(alpha = 0.20f),
     unselectedIconColor = GRIS2,
     unselectedTextColor = GRIS2
 )
@@ -869,7 +887,7 @@ fun Splash(onFin: () -> Unit) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Marca(grande = true)
             Spacer(Modifier.height(22.dp))
-            Text("VALIDA  ·  REVISA  ·  VERIFICA", color = GRIS, fontSize = 11.sp, letterSpacing = 3.sp)
+            Text("VALIDA - REVISA - VERIFICA", color = GRIS, fontSize = 11.sp, letterSpacing = 3.sp)
         }
         Column(
             Modifier.align(Alignment.BottomCenter).padding(bottom = 64.dp),
@@ -898,7 +916,7 @@ fun App() {
     var job by remember { mutableStateOf<Job?>(null) }
 
     LaunchedEffect(Unit) {
-        Toast.makeText(ctx, "Speed CC 3.0 cargada", Toast.LENGTH_SHORT).show()
+        Toast.makeText(ctx, "Speed CC 4.0 cargada", Toast.LENGTH_SHORT).show()
     }
 
     fun lanzar(cards: List<Card>, reemplazar: Boolean) {
@@ -922,7 +940,7 @@ fun App() {
                                 resultados.removeAll { it.idx == c.idx }
                                 resultados.add(r); done++
                                 progreso = done.toFloat() / cards.size
-                                estadoTxt = "$done de ${cards.size}  ·  validas: ${resultados.count { it.isLive }}"
+                                estadoTxt = "$done de ${cards.size}  -  validas: ${resultados.count { it.isLive }}"
                             }
                         }
                     }.awaitAll()
@@ -930,7 +948,7 @@ fun App() {
                 val ord = resultados.sortedWith(Orden.comparador)
                 resultados.clear(); resultados.addAll(ord)
                 Historial.add(ctx, Run(System.currentTimeMillis(), System.currentTimeMillis(), ord))
-                estadoTxt = "Listo. ${cards.size} revisadas  ·  ${ord.count { it.isLive }} validas."
+                estadoTxt = "Listo. ${cards.size} revisadas  -  ${ord.count { it.isLive }} validas."
             } catch (e: CancellationException) {
                 estadoTxt = "Detenido. ${resultados.count { it.isLive }} validas."
             } finally { corriendo = false; job = null }
@@ -939,9 +957,9 @@ fun App() {
 
     if (splash) { Splash { splash = false }; return }
 
-    Box(Modifier.fillMaxSize().background(NEGRO)) {
+    Box(Modifier.fillMaxSize().background(FONDO)) {
 
-        Box(Modifier.fillMaxSize().background(FONDO)) {
+        Box(Modifier.fillMaxSize()) {
             when {
                 tab == 0 && revisando -> PantallaRevisar(
                     texto = texto,
@@ -973,17 +991,17 @@ fun App() {
             }
         }
 
-        Box(Modifier.align(Alignment.TopCenter).fillMaxWidth().background(DORADO)) {
+        Box(Modifier.align(Alignment.TopCenter).fillMaxWidth().background(ROJIZO)) {
             Text(
-                "CONTENIDO OK  ·  v3.0",
-                color = NEGRO, fontSize = 11.sp, fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)
+                "SI VES ESTA FRANJA ROJA, EL PINTADO FUNCIONA - v4.0",
+                color = BLANCO, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
             )
         }
 
         NavigationBar(
             modifier = Modifier.align(Alignment.BottomCenter),
-            containerColor = Color(0xFF101010)
+            containerColor = Color(0xFF151515)
         ) {
             NavigationBarItem(
                 selected = tab == 0 && !revisando,
@@ -1013,10 +1031,10 @@ fun App() {
 @Composable
 fun PantallaInicio(onRevisar: () -> Unit, onHistorial: () -> Unit, onAjustes: () -> Unit) {
     Column(
-        Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
-            .padding(start = 16.dp, end = 16.dp, top = 36.dp, bottom = 110.dp)
+        Modifier.fillMaxSize()
+            .padding(start = 16.dp, end = 16.dp, top = 44.dp, bottom = 112.dp)
     ) {
-        Text("INICIO  ·  v3.0", color = VERDE, fontSize = 11.sp, letterSpacing = 2.sp)
+        Text("INICIO - v4.0", color = VERDE, fontSize = 11.sp, letterSpacing = 2.sp)
         Spacer(Modifier.height(12.dp))
         Row(
             Modifier.fillMaxWidth(),
@@ -1032,7 +1050,7 @@ fun PantallaInicio(onRevisar: () -> Unit, onHistorial: () -> Unit, onAjustes: ()
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     Modifier.size(48.dp).clip(RoundedCornerShape(14.dp))
-                        .background(DORADO.copy(alpha = 0.14f)),
+                        .background(DORADO.copy(alpha = 0.18f)),
                     contentAlignment = Alignment.Center
                 ) { Rayo(24.dp) }
                 Spacer(Modifier.width(12.dp))
@@ -1056,27 +1074,25 @@ fun PantallaInicio(onRevisar: () -> Unit, onHistorial: () -> Unit, onAjustes: ()
         FilaFuncion(Icons.Filled.Refresh, "Revisar", "Valida tus tarjetas", onRevisar)
         FilaFuncion(Icons.Filled.List, "Historial", "Consulta tus resultados", onHistorial)
         FilaFuncion(Icons.Filled.Settings, "Ajustes", "Personaliza la app", onAjustes)
-        Spacer(Modifier.height(24.dp))
     }
 }
 
 @Composable
 fun ModoTarjeta(titulo: String, sub: String, activo: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Surface(
-        color = if (activo) DORADO.copy(alpha = 0.10f) else CARBON,
-        shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(if (activo) 1.5.dp else 1.dp, if (activo) DORADO else BORDE),
-        modifier = modifier.clickable { onClick() }
+    Column(
+        modifier.clickable { onClick() }
+            .clip(RoundedCornerShape(16.dp))
+            .background(if (activo) DORADO.copy(alpha = 0.18f) else CARBON)
+            .border(if (activo) 1.5.dp else 1.dp, if (activo) DORADO else BORDE, RoundedCornerShape(16.dp))
+            .padding(14.dp)
     ) {
-        Column(Modifier.padding(14.dp)) {
-            Icon(
-                if (activo) Icons.Filled.CheckCircle else Icons.Filled.Refresh,
-                null, tint = if (activo) DORADO else GRIS, modifier = Modifier.size(22.dp)
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(titulo, color = BLANCO, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
-            Text(sub, color = GRIS2, fontSize = 11.sp)
-        }
+        Icon(
+            if (activo) Icons.Filled.CheckCircle else Icons.Filled.Refresh,
+            null, tint = if (activo) DORADO else GRIS, modifier = Modifier.size(22.dp)
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(titulo, color = BLANCO, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+        Text(sub, color = GRIS2, fontSize = 11.sp)
     }
 }
 
@@ -1114,8 +1130,8 @@ fun PantallaRevisar(
     )
 
     Column(
-        Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
-            .padding(start = 16.dp, end = 16.dp, top = 36.dp, bottom = 110.dp)
+        Modifier.fillMaxSize()
+            .padding(start = 16.dp, end = 16.dp, top = 44.dp, bottom = 112.dp)
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onAtras) { Icon(Icons.Filled.ArrowBack, null, tint = BLANCO) }
@@ -1188,38 +1204,38 @@ fun PantallaRevisar(
         }
         Spacer(Modifier.height(14.dp))
         resultados.forEachIndexed { i, r -> FilaResultado(i + 1, r) }
-        Spacer(Modifier.height(20.dp))
     }
 }
 
 @Composable
 fun FilaResultado(n: Int, r: Result) {
     val c = colorEstado(r.state)
-    Surface(
-        color = CARBON, shape = RoundedCornerShape(14.dp),
-        border = BorderStroke(1.dp, c.copy(alpha = 0.25f)),
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+    Column(
+        Modifier.fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(CARBON)
+            .border(1.dp, c, RoundedCornerShape(14.dp))
+            .padding(12.dp)
     ) {
-        Column(Modifier.padding(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("$n", color = GRIS2, fontSize = 11.sp, modifier = Modifier.width(20.dp))
-                Text(
-                    r.num, color = BLANCO, fontFamily = FontFamily.Monospace,
-                    fontSize = 12.sp, modifier = Modifier.weight(1f)
-                )
-                ChipEstado(r.state)
-            }
-            Spacer(Modifier.height(5.dp))
-            val detalle = buildString {
-                append(r.brand)
-                if (r.tipo.isNotEmpty()) append("  ·  ${r.tipo}")
-                if (r.banco.isNotEmpty()) append("  ·  ${r.banco}")
-                if (r.pais.isNotEmpty()) append("  ·  ${r.pais}")
-                append("  ·  ${r.mm}/${r.yy}")
-                if (r.balance.isNotEmpty()) append("  ·  saldo ${r.balance}")
-            }
-            Text(detalle, color = GRIS, fontSize = 11.sp)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("$n", color = GRIS2, fontSize = 11.sp, modifier = Modifier.width(20.dp))
+            Text(
+                r.num, color = BLANCO, fontFamily = FontFamily.Monospace,
+                fontSize = 12.sp, modifier = Modifier.weight(1f)
+            )
+            ChipEstado(r.state)
         }
+        Spacer(Modifier.height(5.dp))
+        val detalle = buildString {
+            append(r.brand)
+            if (r.tipo.isNotEmpty()) append("  -  ${r.tipo}")
+            if (r.banco.isNotEmpty()) append("  -  ${r.banco}")
+            if (r.pais.isNotEmpty()) append("  -  ${r.pais}")
+            append("  -  ${r.mm}/${r.yy}")
+            if (r.balance.isNotEmpty()) append("  -  saldo ${r.balance}")
+        }
+        Text(detalle, color = GRIS, fontSize = 11.sp)
     }
 }
 
@@ -1241,8 +1257,8 @@ fun PantallaHistorial() {
     }
 
     Column(
-        Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
-            .padding(start = 16.dp, end = 16.dp, top = 36.dp, bottom = 110.dp)
+        Modifier.fillMaxSize()
+            .padding(start = 16.dp, end = 16.dp, top = 44.dp, bottom = 112.dp)
     ) {
         Text("Historial", color = BLANCO, fontSize = 20.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(12.dp))
@@ -1263,54 +1279,56 @@ fun PantallaHistorial() {
         }
         visibles.forEach { r ->
             val c = if (r.vivas > 0) VERDE else ROJO
-            Surface(
-                color = CARBON, shape = RoundedCornerShape(16.dp),
-                border = BorderStroke(1.dp, BORDE),
-                modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp).clickable { sel = r }
+            Row(
+                Modifier.fillMaxWidth()
+                    .padding(vertical = 5.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(CARBON)
+                    .border(1.dp, BORDE, RoundedCornerShape(16.dp))
+                    .clickable { sel = r }
+                    .padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        Modifier.size(42.dp).clip(RoundedCornerShape(12.dp))
-                            .background(DORADO.copy(alpha = 0.12f)),
-                        contentAlignment = Alignment.Center
-                    ) { Rayo(20.dp) }
-                    Spacer(Modifier.width(12.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            SimpleDateFormat("dd/MM/yyyy  ·  HH:mm", Locale.getDefault()).format(Date(r.fecha)),
-                            color = BLANCO, fontSize = 13.sp, fontWeight = FontWeight.SemiBold
-                        )
-                        Spacer(Modifier.height(2.dp))
-                        Text("${r.total} revisadas  ·  ${r.vivas} validas", color = GRIS, fontSize = 11.sp)
-                    }
-                    Surface(color = c.copy(alpha = 0.14f), shape = RoundedCornerShape(50)) {
-                        Text(
-                            if (r.vivas > 0) "${r.vivas} OK" else "0",
-                            color = c, fontSize = 11.sp, fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 9.dp, vertical = 3.dp)
-                        )
-                    }
+                Box(
+                    Modifier.size(42.dp).clip(RoundedCornerShape(12.dp))
+                        .background(DORADO.copy(alpha = 0.18f)),
+                    contentAlignment = Alignment.Center
+                ) { Rayo(20.dp) }
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        SimpleDateFormat("dd/MM/yyyy  -  HH:mm", Locale.getDefault()).format(Date(r.fecha)),
+                        color = BLANCO, fontSize = 13.sp, fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text("${r.total} revisadas  -  ${r.vivas} validas", color = GRIS, fontSize = 11.sp)
+                }
+                Row(
+                    Modifier.clip(RoundedCornerShape(50)).background(c.copy(alpha = 0.22f))
+                        .padding(horizontal = 9.dp, vertical = 3.dp)
+                ) {
+                    Text(
+                        if (r.vivas > 0) "${r.vivas} OK" else "0",
+                        color = c, fontSize = 11.sp, fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
-        Spacer(Modifier.height(24.dp))
     }
 }
 
 @Composable
 fun FiltroChip(texto: String, activo: Boolean, onClick: () -> Unit) {
-    Surface(
-        color = if (activo) DORADO else CARBON,
-        shape = RoundedCornerShape(50),
-        border = BorderStroke(1.dp, if (activo) DORADO else BORDE),
-        modifier = Modifier.clickable { onClick() }
-    ) {
-        Text(
-            texto, color = if (activo) NEGRO else GRIS, fontSize = 12.sp,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp)
-        )
-    }
+    Text(
+        texto, color = if (activo) NEGRO else GRIS, fontSize = 12.sp,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .background(if (activo) DORADO else CARBON)
+            .border(1.dp, if (activo) DORADO else BORDE, RoundedCornerShape(50))
+            .clickable { onClick() }
+            .padding(horizontal = 14.dp, vertical = 7.dp)
+    )
 }
 
 @Composable
@@ -1318,22 +1336,22 @@ fun DetalleRun(run: Run, onBack: () -> Unit) {
     val ctx = LocalContext.current
     val orden = run.results.sortedWith(Orden.comparador)
     Column(
-        Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
-            .padding(start = 16.dp, end = 16.dp, top = 36.dp, bottom = 110.dp)
+        Modifier.fillMaxSize()
+            .padding(start = 16.dp, end = 16.dp, top = 44.dp, bottom = 112.dp)
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, null, tint = BLANCO) }
             Column {
                 Text("Resultado", color = BLANCO, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 Text(
-                    SimpleDateFormat("dd/MM/yyyy  ·  HH:mm", Locale.getDefault()).format(Date(run.fecha)),
+                    SimpleDateFormat("dd/MM/yyyy  -  HH:mm", Locale.getDefault()).format(Date(run.fecha)),
                     color = GRIS, fontSize = 11.sp
                 )
             }
         }
         Spacer(Modifier.height(10.dp))
         Tarjeta {
-            Text("${run.total} revisadas  ·  ${run.vivas} validas", color = BLANCO, fontSize = 14.sp)
+            Text("${run.total} revisadas  -  ${run.vivas} validas", color = BLANCO, fontSize = 14.sp)
             Spacer(Modifier.height(10.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 BotonSuave("Compartir CSV", Icons.Filled.Share) { compartirCsv(ctx, "vivas.csv", orden) }
@@ -1342,25 +1360,27 @@ fun DetalleRun(run: Run, onBack: () -> Unit) {
         }
         Spacer(Modifier.height(12.dp))
         orden.forEachIndexed { i, r -> FilaResultado(i + 1, r) }
-        Spacer(Modifier.height(24.dp))
     }
 }
 
 @Composable
 fun FilaAjuste(icono: ImageVector, titulo: String, sub: String) {
-    Surface(
-        color = CARBON, shape = RoundedCornerShape(14.dp), border = BorderStroke(1.dp, BORDE),
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+    Row(
+        Modifier.fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(CARBON)
+            .border(1.dp, BORDE, RoundedCornerShape(14.dp))
+            .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(icono, null, tint = DORADO, modifier = Modifier.size(20.dp))
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
-                Text(titulo, color = BLANCO, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                Text(sub, color = GRIS2, fontSize = 11.sp)
-            }
-            Icon(Icons.Filled.KeyboardArrowRight, null, tint = GRIS2)
+        Icon(icono, null, tint = DORADO, modifier = Modifier.size(20.dp))
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Text(titulo, color = BLANCO, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            Text(sub, color = GRIS2, fontSize = 11.sp)
         }
+        Icon(Icons.Filled.KeyboardArrowRight, null, tint = GRIS2)
     }
 }
 
@@ -1372,8 +1392,8 @@ fun PantallaAjustes(onLimpiar: () -> Unit) {
     var proxys by remember { mutableStateOf(Ajustes.s(ctx, "proxies", "")) }
 
     Column(
-        Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
-            .padding(start = 16.dp, end = 16.dp, top = 36.dp, bottom = 110.dp)
+        Modifier.fillMaxSize()
+            .padding(start = 16.dp, end = 16.dp, top = 44.dp, bottom = 112.dp)
     ) {
         Text("Ajustes", color = BLANCO, fontSize = 20.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(14.dp))
@@ -1381,7 +1401,7 @@ fun PantallaAjustes(onLimpiar: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Marca(false)
                 Spacer(Modifier.width(12.dp))
-                Text("v3.0", color = GRIS2, fontSize = 12.sp)
+                Text("v4.0", color = GRIS2, fontSize = 12.sp)
             }
             Spacer(Modifier.height(8.dp))
             Text("Configura la velocidad y los datos de apoyo.", color = GRIS, fontSize = 12.sp)
@@ -1444,7 +1464,6 @@ fun PantallaAjustes(onLimpiar: () -> Unit) {
         Spacer(Modifier.height(8.dp))
         Text("Cerrar sesion limpia la lista pegada y los resultados en pantalla.",
             color = GRIS2, fontSize = 11.sp)
-        Spacer(Modifier.height(24.dp))
     }
 }
 
@@ -1509,6 +1528,31 @@ fun imprimirPdf(ctx: Context, titulo: String, rows: List<Result>) {
     }
     wv.loadDataWithBaseURL(null, sb.toString(), "text/html", "utf-8", null)
 }
+// FIN_MAIN
 EOF
 
+check() {
+  f="$1"
+  m="$2"
+  if [ ! -f "$f" ]; then
+    echo "!!!! FALLO: no se creo $f"
+    exit 1
+  fi
+  if ! grep -q "$m" "$f"; then
+    echo "!!!! FALLO: $f quedo CORTO al pegar (falta la marca $m)"
+    echo "!!!! Vuelve a copiar setup.sh entero y guardalo."
+    exit 1
+  fi
+  o=$(grep -o "{" "$f" | wc -l)
+  c=$(grep -o "}" "$f" | wc -l)
+  echo "OK  $f  ($(wc -l < "$f") lineas, llaves $o/$c)"
+}
+
+echo "--- comprobando archivos generados ---"
+check app/src/main/java/com/venice/ccchecker/Datos.kt FIN_DATOS
+check app/src/main/java/com/venice/ccchecker/Checker.kt FIN_CHECKER
+check app/src/main/java/com/venice/ccchecker/MainActivity.kt FIN_MAIN
+
+echo "--- resumen ---"
+ls -la app/src/main/java/com/venice/ccchecker/
 echo "== Speed CC listo =="
