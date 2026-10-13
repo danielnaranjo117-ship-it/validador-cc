@@ -55,8 +55,8 @@ android {
         applicationId = "com.venice.ccchecker"
         minSdk = 24
         targetSdk = 34
-        versionCode = 9
-        versionName = "4.0"
+        versionCode = 10
+        versionName = "4.1"
     }
 
     buildFeatures { compose = true }
@@ -607,7 +607,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -916,7 +915,7 @@ fun App() {
     var job by remember { mutableStateOf<Job?>(null) }
 
     LaunchedEffect(Unit) {
-        Toast.makeText(ctx, "Speed CC 4.0 cargada", Toast.LENGTH_SHORT).show()
+        Toast.makeText(ctx, "Speed CC 4.1 cargada", Toast.LENGTH_SHORT).show()
     }
 
     fun lanzar(cards: List<Card>, reemplazar: Boolean) {
@@ -993,7 +992,7 @@ fun App() {
 
         Box(Modifier.align(Alignment.TopCenter).fillMaxWidth().background(ROJIZO)) {
             Text(
-                "SI VES ESTA FRANJA ROJA, EL PINTADO FUNCIONA - v4.0",
+                "SI VES ESTA FRANJA ROJA, EL PINTADO FUNCIONA - v4.1",
                 color = BLANCO, fontSize = 11.sp, fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
             )
@@ -1034,7 +1033,7 @@ fun PantallaInicio(onRevisar: () -> Unit, onHistorial: () -> Unit, onAjustes: ()
         Modifier.fillMaxSize()
             .padding(start = 16.dp, end = 16.dp, top = 44.dp, bottom = 112.dp)
     ) {
-        Text("INICIO - v4.0", color = VERDE, fontSize = 11.sp, letterSpacing = 2.sp)
+        Text("INICIO - v4.1", color = VERDE, fontSize = 11.sp, letterSpacing = 2.sp)
         Spacer(Modifier.height(12.dp))
         Row(
             Modifier.fillMaxWidth(),
@@ -1401,7 +1400,7 @@ fun PantallaAjustes(onLimpiar: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Marca(false)
                 Spacer(Modifier.width(12.dp))
-                Text("v4.0", color = GRIS2, fontSize = 12.sp)
+                Text("v4.1", color = GRIS2, fontSize = 12.sp)
             }
             Spacer(Modifier.height(8.dp))
             Text("Configura la velocidad y los datos de apoyo.", color = GRIS, fontSize = 12.sp)
@@ -1519,8 +1518,7 @@ fun imprimirPdf(ctx: Context, titulo: String, rows: List<Result>) {
                 val pm = act.getSystemService(Context.PRINT_SERVICE) as PrintManager
                 pm.print("SpeedCC", view.createPrintDocumentAdapter("SpeedCC"),
                     PrintAttributes.Builder()
-                        .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
-                        .setOrientation(PrintAttributes.ORIENTATION_LANDSCAPE)
+                        .setMediaSize(PrintAttributes.MediaSize.ISO_A4.asLandscape())
                         .build())
             } catch (_: Exception) { }
             view.postDelayed({ try { root.removeView(view) } catch (_: Exception) { } }, 2000)
@@ -1540,7 +1538,6 @@ check() {
   fi
   if ! grep -q "$m" "$f"; then
     echo "!!!! FALLO: $f quedo CORTO al pegar (falta la marca $m)"
-    echo "!!!! Vuelve a copiar setup.sh entero y guardalo."
     exit 1
   fi
   o=$(grep -o "{" "$f" | wc -l)
@@ -1553,6 +1550,4 @@ check app/src/main/java/com/venice/ccchecker/Datos.kt FIN_DATOS
 check app/src/main/java/com/venice/ccchecker/Checker.kt FIN_CHECKER
 check app/src/main/java/com/venice/ccchecker/MainActivity.kt FIN_MAIN
 
-echo "--- resumen ---"
-ls -la app/src/main/java/com/venice/ccchecker/
 echo "== Speed CC listo =="
